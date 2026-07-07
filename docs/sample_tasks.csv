@@ -1,0 +1,6 @@
+id,description,example_asset_urls,output_format,model,status
+1,a cat astronaut floating in space with orange fur,,PNG,openai,
+2,a serene lake at sunrise in watercolor style,,JPG,claude,
+3,relaxing intro voice welcoming listeners to a podcast,,MP3,openai,
+4,a bouncing ball animation loop,,GIF,openai,
+5,a futuristic city skyline at night neon lights,https://example.com/ref.jpg,PNG,openai,
