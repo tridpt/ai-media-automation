@@ -4,6 +4,9 @@ from datetime import date
 
 from config import CONFIG
 from src.retry import with_retry
+from src.logger import get_logger
+
+log = get_logger("drive")
 
 _MIME = {
     ".png": "image/png",
@@ -48,7 +51,7 @@ def upload(file_path: str) -> str:
     """Upload file lên Drive, trả về link xem file."""
     if CONFIG.MOCK:
         fake = f"https://drive.google.com/mock/{os.path.basename(file_path)}"
-        print(f"[drive][MOCK] Giả lập upload {file_path} -> {fake}")
+        log.info("[MOCK] Giả lập upload %s -> %s", file_path, fake)
         return fake
 
     return _upload_to_drive(file_path)

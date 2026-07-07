@@ -15,6 +15,10 @@ Cách dùng:
 import time
 import functools
 
+from src.logger import get_logger
+
+log = get_logger("retry")
+
 
 # Các loại lỗi KHÔNG nên retry (lỗi do cấu hình/đầu vào, thử lại cũng vô ích).
 # So khớp theo tên class hoặc chuỗi trong thông báo lỗi.
@@ -75,9 +79,9 @@ def with_retry(
                     # Đã hết số lần thử: raise lỗi cuối cùng.
                     if attempt == max_attempts:
                         raise
-                    print(
-                        f"[retry] {label} lỗi lần {attempt}/{max_attempts}: "
-                        f"{type(exc).__name__}. Thử lại sau {delay:.1f}s..."
+                    log.warning(
+                        "%s lỗi lần %d/%d: %s. Thử lại sau %.1fs...",
+                        label, attempt, max_attempts, type(exc).__name__, delay,
                     )
                     time.sleep(delay)
                     delay *= backoff

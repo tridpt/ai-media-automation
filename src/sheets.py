@@ -1,5 +1,8 @@
 """Đọc danh sách task từ Google Sheets và cập nhật trạng thái ngược lại."""
 from config import CONFIG
+from src.logger import get_logger
+
+log = get_logger("sheets")
 
 # Thứ tự cột kỳ vọng trong sheet (hàng đầu tiên là header)
 EXPECTED_HEADERS = [
@@ -81,7 +84,7 @@ def read_tasks():
     Ở chế độ mock, trả về danh sách task mẫu, không gọi Google.
     """
     if CONFIG.MOCK:
-        print("[sheets][MOCK] Trả về", len(_MOCK_TASKS), "task mẫu")
+        log.info("[MOCK] Trả về %d task mẫu", len(_MOCK_TASKS))
         # trả về bản sao để không ảnh hưởng dữ liệu gốc
         return [dict(t) for t in _MOCK_TASKS]
 
@@ -116,7 +119,7 @@ def read_tasks():
 def update_status(row_number: int, status: str):
     """Cập nhật cột status (cột F) cho hàng cụ thể."""
     if CONFIG.MOCK:
-        print(f"[sheets][MOCK] Cập nhật hàng {row_number} -> {status}")
+        log.info("[MOCK] Cập nhật hàng %s -> %s", row_number, status)
         return
     svc = _service()
     rng = f"{CONFIG.SHEET_TAB}!F{row_number}"

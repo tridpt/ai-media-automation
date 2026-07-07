@@ -27,12 +27,15 @@ if "--mock" in sys.argv:
     os.environ["MOCK"] = "1"
 
 from config import CONFIG
+from src.logger import get_logger
 from src.database import init_db, log_task
 from src.sheets import read_tasks, update_status
 from src.generator import generate
 from src.drive import upload
 from src.notify import notify_task_result
 from src.report import build_and_send_daily_report
+
+log = get_logger("main")
 
 
 def process_task(task: dict):
@@ -55,7 +58,7 @@ def process_task(task: dict):
         # 4. Thông báo + cập nhật sheet
         notify_task_result(task, True, link)
         update_status(task["_row"], "success")
-        print(f"[main] Task {task_id} OK -> {link}")
+        log.info("Task %s OK -> %s", task_id, link)
         return True, link
     except Exception as e:  # noqa: BLE001
         detail = f"{type(e).__name__}: {e}"
@@ -72,7 +75,7 @@ def process_task(task: dict):
             update_status(task["_row"], "failed")
         except Exception:  # noqa: BLE001
             pass
-        print(f"[main] Task {task_id} FAILED -> {detail}")
+        log.error("Task %s FAILED -> %s", task_id, detail)
         return False, detail
 
 
@@ -80,17 +83,17 @@ def run():
     """Chạy toàn bộ workflow."""
     init_db()
     if CONFIG.MOCK:
-        print("[main] === CHẾ ĐỘ MOCK: giả lập mọi dịch vụ, không gọi API thật ===")
-    print("[main] Đọc task từ Google Sheets...")
+        log.info("=== CHẾ ĐỘ MOCK: giả lập mọi dịch vụ, không gọi API thật ===")
+    log.info("Đọc task từ Google Sheets...")
     tasks = read_tasks()
-    print(f"[main] Có {len(tasks)} task cần xử lý.")
+    log.info("Có %d task cần xử lý.", len(tasks))
 
     for task in tasks:
         process_task(task)
 
     # Tổng hợp và gửi báo cáo cuối ngày
     build_and_send_daily_report()
-    print("[main] Hoàn tất.")
+    log.info("Hoàn tất.")
 
 
 if __name__ == "__main__":

@@ -10,6 +10,9 @@ import matplotlib.pyplot as plt
 from config import CONFIG
 from src.database import get_logs_for_day
 from src.notify import send_email
+from src.logger import get_logger
+
+log = get_logger("report")
 
 
 def _build_chart(logs, out_path: str):
@@ -65,7 +68,7 @@ def build_and_send_daily_report(day: date = None):
     day = day or date.today()
     logs = get_logs_for_day(day)
     if not logs:
-        print("[report] Không có log nào trong ngày, bỏ qua báo cáo.")
+        log.info("Không có log nào trong ngày, bỏ qua báo cáo.")
         return
 
     os.makedirs(CONFIG.OUTPUT_DIR, exist_ok=True)
@@ -76,9 +79,9 @@ def build_and_send_daily_report(day: date = None):
     subject = f"[AI Automation] Báo cáo ngày {day.isoformat()}"
     try:
         send_email(subject, body, to=CONFIG.ADMIN_EMAIL, attachment=chart_path)
-        print("[report] Đã gửi báo cáo cho admin.")
+        log.info("Đã gửi báo cáo cho admin.")
     except Exception as e:  # noqa: BLE001
-        print(f"[report] Lỗi gửi báo cáo: {e}")
+        log.error("Lỗi gửi báo cáo: %s", e)
 
 
 if __name__ == "__main__":

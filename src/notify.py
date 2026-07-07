@@ -9,17 +9,20 @@ import requests
 
 from config import CONFIG
 from src.retry import with_retry
+from src.logger import get_logger
+
+log = get_logger("notify")
 
 
 def send_email(subject: str, body: str, to: str = None, attachment: str = None):
     """Gửi email dạng text, có thể kèm 1 file đính kèm."""
     if CONFIG.MOCK:
         att = f" (đính kèm: {attachment})" if attachment else ""
-        print(f"[email][MOCK] To: {to or CONFIG.EMAIL_TO} | {subject}{att}")
-        print("  " + body.replace("\n", "\n  "))
+        log.info("[email][MOCK] To: %s | %s%s", to or CONFIG.EMAIL_TO, subject, att)
+        log.info("  %s", body.replace("\n", "\n  "))
         return
     if not CONFIG.SMTP_USER:
-        print("[notify] SMTP chưa cấu hình, bỏ qua email")
+        log.warning("SMTP chưa cấu hình, bỏ qua email")
         return
     to = to or CONFIG.EMAIL_TO
     msg = MIMEMultipart()
@@ -48,10 +51,10 @@ def send_email(subject: str, body: str, to: str = None, attachment: str = None):
 def send_slack(text: str):
     """Gửi tin nhắn tới Slack qua Incoming Webhook."""
     if CONFIG.MOCK:
-        print(f"[slack][MOCK] {text.splitlines()[0] if text else ''}")
+        log.info("[slack][MOCK] %s", text.splitlines()[0] if text else "")
         return
     if not CONFIG.SLACK_WEBHOOK_URL:
-        print("[notify] Slack webhook chưa cấu hình, bỏ qua")
+        log.warning("Slack webhook chưa cấu hình, bỏ qua")
         return
     _post_slack(text)
 
@@ -77,8 +80,8 @@ def notify_task_result(task, success: bool, detail: str):
     try:
         send_email(subject, body)
     except Exception as e:  # noqa: BLE001
-        print(f"[notify] lỗi gửi email: {e}")
+        log.error("lỗi gửi email: %s", e)
     try:
         send_slack(f"{subject}\n{body}")
     except Exception as e:  # noqa: BLE001
-        print(f"[notify] lỗi gửi slack: {e}")
+        log.error("lỗi gửi slack: %s", e)
