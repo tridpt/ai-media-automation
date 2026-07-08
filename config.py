@@ -8,6 +8,14 @@ load_dotenv()
 class Config:
     # AI models
     OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
+    # Endpoint tuỳ chọn cho OpenAI hoặc dịch vụ tương thích OpenAI (proxy).
+    # Để trống = dùng endpoint chính thức https://api.openai.com/v1
+    OPENAI_BASE_URL = os.getenv("OPENAI_BASE_URL", "")
+    # Model tạo ảnh: dall-e-3 (mặc định, không cần verify) hoặc gpt-image-1
+    # (chất lượng cao hơn nhưng cần verify tổ chức trên tài khoản OpenAI).
+    OPENAI_IMAGE_MODEL = os.getenv("OPENAI_IMAGE_MODEL", "dall-e-3")
+    # Model text-to-speech (tạo audio MP3).
+    OPENAI_TTS_MODEL = os.getenv("OPENAI_TTS_MODEL", "gpt-4o-mini-tts")
     ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
 
     # Google

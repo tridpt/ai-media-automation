@@ -29,7 +29,11 @@ def _get_openai():
 
         if not CONFIG.OPENAI_API_KEY:
             raise RuntimeError("OPENAI_API_KEY chưa được cấu hình")
-        _openai = OpenAI(api_key=CONFIG.OPENAI_API_KEY)
+        kwargs = {"api_key": CONFIG.OPENAI_API_KEY}
+        # Cho phép trỏ tới endpoint tương thích OpenAI (proxy/self-host).
+        if CONFIG.OPENAI_BASE_URL:
+            kwargs["base_url"] = CONFIG.OPENAI_BASE_URL
+        _openai = OpenAI(**kwargs)
     return _openai
 
 
@@ -66,9 +70,19 @@ def _generate_image_bytes(prompt: str) -> bytes:
     """Gọi OpenAI tạo 1 ảnh, trả về bytes PNG."""
     client = _get_openai()
     resp = client.images.generate(
-        model="gpt-image-1", prompt=prompt, size="1024x1024", n=1
+        model=CONFIG.OPENAI_IMAGE_MODEL, prompt=prompt, size="1024x1024", n=1
     )
-    return base64.b64decode(resp.data[0].b64_json)
+    # gpt-image-1 trả về b64_json; dall-e-3 mặc định trả về url -> xử lý cả hai.
+    item = resp.data[0]
+    if getattr(item, "b64_json", None):
+        return base64.b64decode(item.b64_json)
+    if getattr(item, "url", None):
+        import requests
+
+        r = requests.get(item.url, timeout=60)
+        r.raise_for_status()
+        return r.content
+    raise RuntimeError("API tạo ảnh không trả về b64_json lẫn url")
 
 
 def generate(task: dict) -> str:
@@ -183,7 +197,7 @@ def _make_audio(task_id, text) -> str:
     client = _get_openai()
     path = os.path.join(CONFIG.OUTPUT_DIR, f"task_{task_id}.mp3")
     with client.audio.speech.with_streaming_response.create(
-        model="gpt-4o-mini-tts", voice="alloy", input=text
+        model=CONFIG.OPENAI_TTS_MODEL, voice="alloy", input=text
     ) as resp:
         resp.stream_to_file(path)
     return path
