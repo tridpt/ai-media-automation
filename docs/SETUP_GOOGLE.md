@@ -95,3 +95,40 @@ thiếu cái gì để bạn sửa.
 | `FileNotFoundError: service_account.json` | Chưa đặt file key đúng chỗ hoặc sai tên. |
 | `HttpError 404 ... Requested entity was not found` | SHEET_ID hoặc DRIVE_FOLDER_ID sai. |
 | `API has not been used ... disabled` | Chưa bật Sheets API hoặc Drive API ở Bước 2. |
+| `Service Accounts do not have storage quota` | Đang upload Drive bằng service account. Với Gmail cá nhân phải dùng OAuth — xem phần dưới. |
+
+---
+
+## Upload Drive bằng OAuth (bắt buộc với Gmail cá nhân)
+
+Service account **không có dung lượng lưu trữ riêng**, nên với Gmail cá nhân việc
+upload file lên Drive sẽ báo `storageQuotaExceeded`. Cách đúng là dùng **OAuth** để
+upload với tư cách chính bạn (dùng quota 15GB của tài khoản). Đọc Sheets vẫn dùng
+service account như trên; chỉ khâu upload Drive cần OAuth.
+
+### Bước A — Tạo OAuth Client ID
+
+1. Google Cloud Console → **APIs & Services** → **Credentials**.
+2. **+ CREATE CREDENTIALS** → **OAuth client ID**.
+3. Nếu bị hỏi cấu hình **OAuth consent screen**:
+   - User type: chọn **External** → Create.
+   - Điền tên app + email bắt buộc → Save and Continue (bỏ qua Scopes).
+   - **Test users** → Add users → thêm chính Gmail của bạn → Save.
+4. Quay lại tạo OAuth client ID → Application type: **Desktop app** → Create.
+5. Bấm **Download JSON**, đổi tên thành `oauth_client.json`, đặt ở thư mục gốc dự án.
+
+### Bước B — Cấu hình .env
+
+```
+DRIVE_AUTH=oauth
+OAUTH_CLIENT_FILE=oauth_client.json
+```
+
+### Bước C — Đăng nhập lần đầu
+
+Lần chạy thật đầu tiên, trình duyệt sẽ tự mở để bạn đăng nhập Google và cấp quyền.
+Gặp màn hình "Google chưa xác minh app này" (vì đây là app test của chính bạn):
+bấm **Nâng cao (Advanced)** → **Chuyển tới ... (không an toàn)** → **Cho phép (Allow)**.
+
+Sau khi cho phép, token được lưu vào `token.json` — các lần sau không phải đăng nhập
+lại. Cả `oauth_client.json` và `token.json` đều đã nằm trong `.gitignore`.

@@ -17,9 +17,58 @@ _MIME = {
 }
 
 
+def _oauth_credentials():
+    """Lấy credentials OAuth (upload với tư cách tài khoản người dùng).
+
+    - Lần đầu: mở trình duyệt cho bạn đăng nhập, rồi lưu token vào token.json.
+    - Các lần sau: đọc lại token.json, tự refresh khi hết hạn (không phải đăng nhập lại).
+
+    Cần file OAuth Client ID (tải từ Google Cloud) đặt tại CONFIG.OAUTH_CLIENT_FILE.
+    """
+    from google.oauth2.credentials import Credentials
+    from google_auth_oauthlib.flow import InstalledAppFlow
+    from google.auth.transport.requests import Request
+
+    creds = None
+    token_path = CONFIG.OAUTH_TOKEN_FILE
+
+    if os.path.exists(token_path):
+        creds = Credentials.from_authorized_user_file(token_path, CONFIG.SCOPES)
+
+    if not creds or not creds.valid:
+        if creds and creds.expired and creds.refresh_token:
+            creds.refresh(Request())
+        else:
+            if not os.path.exists(CONFIG.OAUTH_CLIENT_FILE):
+                raise RuntimeError(
+                    f"Không tìm thấy '{CONFIG.OAUTH_CLIENT_FILE}'. "
+                    "Tải OAuth Client ID (Desktop) từ Google Cloud về đặt tên này."
+                )
+            flow = InstalledAppFlow.from_client_secrets_file(
+                CONFIG.OAUTH_CLIENT_FILE, CONFIG.SCOPES
+            )
+            creds = flow.run_local_server(port=0)
+        # lưu token để lần sau không phải đăng nhập lại
+        with open(token_path, "w", encoding="utf-8") as f:
+            f.write(creds.to_json())
+
+    return creds
+
+
 def _service():
-    from google.oauth2 import service_account
+    """Tạo Drive service.
+
+    Ưu tiên OAuth nếu có OAuth Client file (upload bằng quota của bạn - 15GB).
+    Nếu không, fallback về service account (lưu ý: service account không có
+    quota lưu trữ với Drive cá nhân).
+    """
     from googleapiclient.discovery import build
+
+    if CONFIG.DRIVE_AUTH == "oauth" or os.path.exists(CONFIG.OAUTH_CLIENT_FILE):
+        log.info("Drive dùng OAuth (tài khoản người dùng).")
+        return build("drive", "v3", credentials=_oauth_credentials())
+
+    from google.oauth2 import service_account
 
     creds = service_account.Credentials.from_service_account_file(
         CONFIG.GOOGLE_SERVICE_ACCOUNT_FILE, scopes=CONFIG.SCOPES

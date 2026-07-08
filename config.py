@@ -22,6 +22,14 @@ class Config:
     GOOGLE_SERVICE_ACCOUNT_FILE = os.getenv(
         "GOOGLE_SERVICE_ACCOUNT_FILE", "service_account.json"
     )
+    # Cách xác thực Drive: "oauth" (upload bằng tài khoản của bạn, dùng quota
+    # cá nhân 15GB) hoặc "service_account" (service account không có quota
+    # lưu trữ riêng, chỉ dùng được với Shared Drive của Workspace).
+    DRIVE_AUTH = os.getenv("DRIVE_AUTH", "oauth")
+    # File OAuth Client ID (Desktop app) tải từ Google Cloud Console.
+    OAUTH_CLIENT_FILE = os.getenv("OAUTH_CLIENT_FILE", "oauth_client.json")
+    # File lưu token sau lần đăng nhập đầu (tự sinh, không commit).
+    OAUTH_TOKEN_FILE = os.getenv("OAUTH_TOKEN_FILE", "token.json")
     SHEET_ID = os.getenv("SHEET_ID", "")
     SHEET_TAB = os.getenv("SHEET_TAB", "Sheet1")
     DRIVE_FOLDER_ID = os.getenv("DRIVE_FOLDER_ID", "")
