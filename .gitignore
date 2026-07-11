@@ -10,3 +10,4 @@ outputs/
 reports/
 logs/
 .pytest_cache/
+docs/PRESENTATION_SCRIPT.md
