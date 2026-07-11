@@ -54,6 +54,12 @@ class Config:
     # Có thể bật bằng biến môi trường MOCK=1 hoặc cờ --mock khi chạy main.py
     MOCK = os.getenv("MOCK", "0") in ("1", "true", "True")
 
+    # Chế độ mock RIÊNG cho AI: chỉ giả lập bước sinh media (tạo file bằng
+    # Pillow, không gọi OpenAI/Claude), còn Drive/Email/Slack/Sheets vẫn CHẠY
+    # THẬT. Dùng khi chưa có credit OpenAI nhưng vẫn muốn upload thật lên Drive
+    # và gửi email/Slack thật. Bật bằng MOCK_AI=1 hoặc cờ --mock-ai.
+    MOCK_AI = os.getenv("MOCK_AI", "0") in ("1", "true", "True")
+
     # Google API scopes
     SCOPES = [
         "https://www.googleapis.com/auth/spreadsheets",

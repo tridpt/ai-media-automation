@@ -25,6 +25,9 @@ except (AttributeError, ValueError):
 # Vì CONFIG đọc biến môi trường ngay lúc import, phải set os.environ sớm.
 if "--mock" in sys.argv:
     os.environ["MOCK"] = "1"
+# Chỉ giả lập bước AI, còn Drive/Email/Slack/Sheets chạy thật.
+if "--mock-ai" in sys.argv:
+    os.environ["MOCK_AI"] = "1"
 
 from config import CONFIG
 from src.logger import get_logger
@@ -84,6 +87,8 @@ def run():
     init_db()
     if CONFIG.MOCK:
         log.info("=== CHẾ ĐỘ MOCK: giả lập mọi dịch vụ, không gọi API thật ===")
+    elif CONFIG.MOCK_AI:
+        log.info("=== CHẾ ĐỘ MOCK-AI: AI tạo file giả, Drive/Email/Slack/Sheets CHẠY THẬT ===")
     log.info("Đọc task từ Google Sheets...")
     tasks = read_tasks()
     log.info("Có %d task cần xử lý.", len(tasks))

@@ -96,8 +96,8 @@ def generate(task: dict) -> str:
     fmt = task["output_format"].strip().lower()
     model = task["model"].strip().lower()
 
-    # Chế độ mock: tạo file giả, không gọi API AI nào cả
-    if CONFIG.MOCK:
+    # Chế độ mock (toàn bộ) hoặc mock riêng AI: tạo file giả, không gọi API AI
+    if CONFIG.MOCK or CONFIG.MOCK_AI:
         return _make_mock(task_id, description, fmt)
 
     # Nếu chọn claude thì dùng claude để tinh chỉnh prompt trước
